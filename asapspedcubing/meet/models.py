@@ -7,25 +7,25 @@ import os
 
 
 def seconds_to_time_format_floor(seconds):
-            if seconds is None or seconds < 0:
-                return "DNF"
-            
-            try:
-                # Округляем вниз до 2 знаков после запятой
-                # seconds_floor = math.floor(seconds * 100) / 100
-                
-                # Вычисляем минуты и секунды
-                minutes = int(seconds // 60)
-                remaining_seconds = round(seconds % 60, 2)
-
-                if minutes != 0:
-                    # Форматируем строку: минуты:секунды.сотые
-                    return f"{minutes}:{remaining_seconds}"
-                else:
-                    return f"{remaining_seconds:.2f}"
-            
-            except (ValueError, TypeError):
-                return "DNF"
+    if seconds is None or seconds < 0:
+        return "DNF"
+    
+    try:
+        # Округляем вниз до 2 знаков после запятой
+        # seconds_floor = math.floor(seconds * 100) / 100
+        
+        # Вычисляем минуты и секунды
+        minutes = int(seconds // 60)
+        remaining_seconds = round(seconds % 60, 2)
+        
+        if minutes != 0:
+            # ✅ Форматируем с ведущим нулём для секунд
+            return f"{minutes}:{remaining_seconds:05.2f}"
+        else:
+            return f"{remaining_seconds:.2f}"
+    
+    except (ValueError, TypeError):
+        return "DNF"
 
 def format_time(value):
     """
@@ -259,8 +259,8 @@ class Results(models.Model):
     attempt_4 = models.CharField(max_length=15, default=0, verbose_name="Четвертая попытка")
     attempt_5 = models.CharField(max_length=15, default=0, verbose_name="Пятая попытка")
 
-    average = models.DecimalField(default=0.00, decimal_places=2, max_digits=6, verbose_name="Среднее")
-    best = models.DecimalField(default=0.00, decimal_places=2, max_digits=6, verbose_name="Лучшее")
+    average = models.CharField(max_length=7, verbose_name="Среднее")
+    best = models.CharField(max_length=7, verbose_name="Лучшее")
 
 
 

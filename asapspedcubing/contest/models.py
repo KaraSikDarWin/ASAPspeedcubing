@@ -16,8 +16,8 @@ class ResultsContest(models.Model):
     attempt_4 = models.CharField(max_length=15, default=0, verbose_name="Четвертая попытка")
     attempt_5 = models.CharField(max_length=15, default=0, verbose_name="Пятая попытка")
 
-    average = models.DecimalField(default=0.00, decimal_places=2, max_digits=6, verbose_name="Среднее")
-    best = models.DecimalField(default=0.00, decimal_places=2, max_digits=6, verbose_name="Лучшее")
+    average = models.CharField(max_length=8, verbose_name="Среднее")
+    best = models.CharField(max_length=8, verbose_name="Лучшее")
 
 
     def save(self, *args, **kwargs):
