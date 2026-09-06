@@ -1,0 +1,489 @@
+{% extends "base.html" %}
+{% load static %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="row m-0">
+<div class="container mt-4 col-9">
+  
+    <div class="d-flex justify-content-between align-items-start flex-wrap mb-4">
+        <div>
+            <h1 class="display-5">{{ meet.name }}</h1>
+            <p class="text-muted">
+                <strong>Дата:</strong> {{ meet.date }}
+                <br><strong>Формат проведения: 
+                                        <span class='{% if meet.format_type.format_name == "Сходка" %} 
+                                                text-success 
+                                                {% elif meet.format_type.format_name == "Контест" %} 
+                                                text-info {% else %} 
+                                                {% endif %}'></strong>{{meet.format_type.format_name}}</span>
+                {% if meet.locations %}
+                    <br><strong>Место:</strong> {{ meet.locations }}
+                {% endif %}
+            </p>
+            {% if meet.description %}
+                <p class="lead">{{ meet.description }}</p>
+            {% endif %}
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="{% url 'meet:index' %}" class="btn btn-secondary">← Назад к списку</a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'meet:edit_meet' meet.id  %}?detail=1" class="btn btn-outline-secondary">Редактировать</a>  
+            <a href="{% url 'meet:delete_meet' meet.id %}" class="btn btn-outline-danger">Удалить</a>
+            
+            <button class="btn btn-outline-primary" onclick="toggleSidebar()">Ввод результатов</button>
+            <a href="{% url 'meet:manage_meet_files' meet.id %}" class="btn btn-outline-info">Добавить файлы</a>
+            {% endif %}
+          </div>
+    </div>
+
+    <!-- Перебор дисциплин и раундов -->
+    {% for discipline, rounds in results %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">{{ discipline }}</h3>
+            </div>
+            <div class="card-body">
+                {% for round in rounds %}
+                    <div class="round-section mb-4">
+                        <h4 class="text-secondary">Раунд {{ round.number }}</h4>
+                        {% if round.results %}
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-bordered align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Имя</th>
+                                            <th>Попытка 1</th>
+                                            <th>Попытка 2</th>
+                                            <th>Попытка 3</th>
+                                            <th>Попытка 4</th>
+                                            <th>Попытка 5</th>
+                                            <th class="table-warning">Среднее</th>
+                                            <th class="table-success">Лучшее</th>
+                                            {% if user.is_authenticated and meet.format_type.format_name == 'Контест'%}
+                                            <th>Состояние</th>
+                                            <th>Действие</th>
+                                            {% endif %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        {% if user.is_authenticated == 0 %}
+                                        {% for attempt in round.results %}
+                                          {% if attempt.is_published or meet.format_type.format_name == 'Сходка' %}
+                                            <tr>
+                                                {% if meet.format_type.format_name == 'Сходка' %}
+                                                <td>{{ attempt.competitor.name }} {{ attempt.competitor.surname }}</td>
+                                                {% elif meet.format_type.format_name == 'Контест' %}
+                                                <td>{{ attempt.competitor }}</td>
+                                                {% endif %}
+                                                <td>{{ attempt.attempt_1|default:"—" }}</td>
+                                                <td>{{ attempt.attempt_2|default:"—" }}</td>
+                                                <td>{{ attempt.attempt_3|default:"—" }}</td>
+                                                <td>{{ attempt.attempt_4|default:"—" }}</td>
+                                                <td>{{ attempt.attempt_5|default:"—" }}</td>
+                                                <td class="table-warning">{{ attempt.average|default:"—" }}</td>
+                                                <td class="table-success">{{ attempt.best|default:"—" }}</td>
+                                            </tr>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        {% else %}
+                                            {% for attempt in round.results %}
+                                            <tr>
+                                                {% if meet.format_type.format_name == 'Сходка' %}
+                                                <td>{{ attempt.competitor.name }} {{ attempt.competitor.surname }}</td>
+                                                {% elif meet.format_type.format_name == 'Контест' or meet.format_type.format_name == 'Топ-кубик' %}
+                                                <td>{{ attempt.competitor }}</td>
+                                                {% endif %}
+                                                <td>{{ attempt.attempt_1|default:"—" }}</td>
+                                                <td>{{ attempt.attempt_2|default:"—" }}</td>
+                                                <td>{{ attempt.attempt_3|default:"—" }}</td>
+                                                <td>{{ attempt.attempt_4|default:"—" }}</td>
+                                                <td>{{ attempt.attempt_5|default:"—" }}</td>
+                                                <td class="table-warning">{{ attempt.average|default:"—" }}</td>
+                                                <td class="table-success">{{ attempt.best|default:"—" }}</td>
+                                                {% if user.is_authenticated and meet.format_type.format_name == 'Контест'%}
+                                                <td>{% if attempt.is_published %}
+                                                  <span class='btn btn-success'>Опубликовано</span>
+                                                  {% else %}
+                                                  <span class='btn btn-danger'>Не опубликовано</span>
+                                                  {% endif %}
+                                                </td>
+                                                <td>
+                                                <form method='post' action="{% url 'meet:change_result_status' %}" class='mb-2'> 
+                                                  {% csrf_token %}
+                                                  <input type="hidden" name="result_id" value={{ attempt.id }}>
+                                                  <input type="hidden" name="action" value="toggle_status">
+                                                <button type='submit' class='btn btn-info'>Сменить статус</button>
+                                                </form>
+                                                <a href={% url 'meet:contest-result-update' attempt.id %} class='btn btn-warning'>Изменить</a>
+                                                <a href={% url 'meet:contest-result-delete' attempt.id %} class='btn btn-danger'>Удалить</a>
+                                                </td>
+                                            {% endif %}
+                                            </tr>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light text-muted" role="alert">
+                                Результатов для этого раунда пока нет.
+                            </div>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <div class="alert alert-warning" role="alert">
+                        Нет раундов для этой дисциплины.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+    {% empty %}
+        <div class="alert alert-info" role="alert">
+            На этой сходке не запланировано ни одной дисциплины.
+        </div>
+    {% endfor %}    
+
+    <!-- Блок с файлами ПОД таблицами результатов -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Загруженные файлы ({{ meet.files.count }})</h5>
+        </div>
+        <div class="card-body">
+            {% if meet.files.all %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Файл</th>
+                                <th>Дата загрузки</th>
+                                {% if user.is_authenticated %}
+                                <th>Действия</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in meet.files.all %}
+                            <tr>
+                                <td>{{ file.title|default:"Без названия" }}</td>
+                                <td>
+                                    <a href="{{ file.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> Скачать
+                                    </a>
+                                </td>
+                                <td>{{ file.uploaded_at|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    {% if user.is_authenticated %}
+                                    <form method="post" action="{% url 'meet:delete_meet_file' meet.pk file.pk %}" 
+                                          style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger" 
+                                                onclick="return confirm('Удалить файл "{{ file.title }}"?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">Нет загруженных файлов</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div> <!-- закрываем col-9 -->
+
+<!-- Боковая панель (сайтбар) -->
+  {% if meet.format_type.format_name != 'Контест' and user.is_authenticated %}
+  <div id="sidebar-block" class="card col-2 m-5 p-2" style="display:block">
+    <div class='container mb-2'>
+        <button type='button' id='edit-span' class='btn' style='background: #0d6efd; color: white' onclick="switchToggle()">Добавить</button>
+        <button type='button' id='remove-span' class='btn' onclick="switchToggle()">Удалить</button>
+    </div>
+    <div class="container mb-4" style='display:block' id='add-block'>  
+      <h5>Добавление участников</h5>
+      <form method="post" name="add_competitor">
+            {% csrf_token %}
+            {% bootstrap_form add_competitor_form %}
+            <button type="submit" name="add_competitor" class="btn btn-primary">Добавить</button>
+        </form>
+    </div>    
+
+    <div class="container mb-4" style='display:none' id='remove-block'>  
+      <h5>Удаление участников</h5>
+      <form method="post" name="del_competitor">
+            {% csrf_token %}
+            {% bootstrap_form form_delete %}
+            <button type="submit" name="delete_competitor" class="btn btn-danger">Удалить</button>
+        </form>
+    </div>    
+    <hr>
+    <div class="container">
+      <h5>Ввод результатов</h5>
+      <form method="post" name="add_result">
+            {% csrf_token %}
+            {% bootstrap_form add_result_form %}
+            <button type="submit" name="add_result" class="btn btn-primary">Добавить</button>
+        </form>
+        <button type="button" name="delete_result" class="btn btn-danger mt-1" onclick="delete_result()">Удалить</button>
+    </div>
+  </div>
+  {% else %}
+  <div id="sidebar-block" class="card col-2 m-5 p-2" style="display:block">
+    <div class="container">
+      <h5>Ввод результатов</h5>
+      <form method="post" name="add_result_contest">
+            {% csrf_token %}
+            {% bootstrap_form add_result_contest %}
+            <button type="submit" name="add_result_contest" class="btn btn-primary">Отправить</button>
+        </form>
+    </div>
+  </div>
+  {% endif %}
+
+
+</div> <!-- закрываем row -->
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+
+    $(document).ready(function() {
+            $('#id_competitor').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Начните вводить имя или фамилию...',
+                allowClear: true,
+                width: '100%'
+            });
+        }); 
+
+     $(document).ready(function() {
+            $('#id_comp').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Начните вводить имя или фамилию...',
+                allowClear: true,
+                width: '100%'
+            });
+        });
+
+      $(document).ready(function() {
+            $('#id_competitors').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Начните вводить имя или фамилию...',
+                allowClear: true,
+                width: '100%'
+            });
+        });
+
+
+
+    // Функция для переключения видимости формы (глобальная)
+    function toggleSidebar() {
+        var block = document.getElementById("sidebar-block");
+        if (block.style.display === 'none') {
+            block.style.display = 'block';
+        } else {
+            block.style.display = 'none';
+        }
+    }
+
+      function switchToggle(){
+        var edit_span = document.getElementById("edit-span");
+        var remove_span = document.getElementById("remove-span");
+        var edit_block = document.getElementById("add-block");
+        var remove_block = document.getElementById("remove-block");
+        if (edit_block.style.display === 'none'){
+            edit_span.style.background = '#0d6efd';
+            edit_span.style.color = 'white';
+            remove_span.style.background = 'none';
+            remove_span.style.color = 'black';
+            edit_block.style.display = 'block';
+            remove_block.style.display = 'none';
+        }else{
+            remove_block.style.display = 'block';
+            edit_block.style.display = 'none';
+            edit_span.style.background = 'none';
+            edit_span.style.color = 'black';
+            remove_span.style.background = '#dc3545';
+            remove_span.style.color = 'white';
+        }
+    }
+
+
+    function delete_competitors(){
+
+      const competitorSelect = document.getElementById('id_comp');
+      const competitorId = competitorSelect ? competitorSelect.value : null;
+
+      if (!meetPk || !competitorId) {
+            alert('Пожалуйста, выберите участника, для удаления со сходки');
+            return;
+        }
+
+      if (!confirm('Вы уверены, что хотите удалить этот результат?')) {
+            return;
+        }
+
+
+      const url = `api/v1/delete-competitor-from-meet/`
+
+      fetch(url,{
+        'method': 'DELETE',
+        'meet_pk': {{meet.pk}},
+        'competitor_id': competitor_id
+      }).then(response =>{
+        if(!response.ok){
+          throw new Error('Ошибка сети');
+        }
+        return response.json();
+      })
+      .then(data => {
+            if (data.error) {
+                console.warn('API ошибка:', data.error);
+                alert('Ошибка: ' + data.error);
+                return;
+            }
+            alert('участник успешно удалён');
+            // Очищаем поля
+            clearFields();
+            // Перезагружаем страницу для обновления таблицы
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Ошибка удаления:', error);
+            alert('Произошла ошибка при удалении');
+        }); 
+    }
+
+    // Функция удаления (глобальная)
+    function delete_result() {
+        // Получаем значения из полей
+        const competitorSelect = document.getElementById('id_competitor');
+        const disciplineSelect = document.getElementById('id_discipline');
+        const roundInput = document.getElementById('id_round_number');
+        
+        const competitorId = competitorSelect ? competitorSelect.value : null;
+        const disciplineId = disciplineSelect ? disciplineSelect.value : null;
+        const roundNumber = roundInput ? roundInput.value : null;
+        const meetPk = {{ meet.pk }};
+
+        if (!meetPk || !competitorId || !disciplineId || !roundNumber) {
+            alert('Пожалуйста, выберите участника, дисциплину и номер раунда');
+            return;
+        }
+
+        // Подтверждение удаления
+        if (!confirm('Вы уверены, что хотите удалить этот результат?')) {
+            return;
+        }
+
+        const url = `/api/v1/delete-results/?meet_pk=${meetPk}&competitor_id=${competitorId}&discipline_id=${disciplineId}&round=${roundNumber}`;
+
+        
+        fetch(url, {
+            method: 'DELETE',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка сети');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.warn('API ошибка:', data.error);
+                alert('Ошибка: ' + data.error);
+                return;
+            }
+            alert('Результат успешно удалён');
+            // Очищаем поля
+            clearFields();
+            // Перезагружаем страницу для обновления таблицы
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Ошибка удаления:', error);
+            alert('Произошла ошибка при удалении');
+        }); 
+    }
+
+    // Очистка полей (глобальная)
+    function clearFields() {
+        const fields = ['attempt_1', 'attempt_2', 'attempt_3', 'attempt_4', 'attempt_5', 'average', 'best'];
+        fields.forEach(field => {
+            const el = document.getElementById('id_' + field);
+            if (el) el.value = '';
+        });
+    }
+
+    // Автозагрузка результатов при изменении полей
+    (function() {
+        const meetPk = {{ meet.pk }};
+
+        const competitorSelect = document.getElementById('id_competitor');
+        const disciplineSelect = document.getElementById('id_discipline');
+        const roundInput = document.getElementById('id_round_number');
+
+        const attemptFields = {
+            attempt_1: document.getElementById('id_attempt_1'),
+            attempt_2: document.getElementById('id_attempt_2'),
+            attempt_3: document.getElementById('id_attempt_3'),
+            attempt_4: document.getElementById('id_attempt_4'),
+            attempt_5: document.getElementById('id_attempt_5'),
+            average: document.getElementById('id_average'),
+            best: document.getElementById('id_best')
+        };
+
+        function loadResults() {
+            const competitorId = competitorSelect ? competitorSelect.value : null;
+            const disciplineId = disciplineSelect ? disciplineSelect.value : null;
+            const roundNumber = roundInput ? roundInput.value : null;
+
+            if (!meetPk || !competitorId || !disciplineId || !roundNumber) {
+                clearFields();
+                return;
+            }
+
+            const url = `/api/v1/get-results/?meet_pk=${meetPk}&competitor_id=${competitorId}&discipline_id=${disciplineId}&round=${roundNumber}`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка сети');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        console.warn('API ошибка:', data.error);
+                        clearFields();
+                        return;
+                    }
+                    if (attemptFields.attempt_1) attemptFields.attempt_1.value = data.attempt_1 || '';
+                    if (attemptFields.attempt_2) attemptFields.attempt_2.value = data.attempt_2 || '';
+                    if (attemptFields.attempt_3) attemptFields.attempt_3.value = data.attempt_3 || '';
+                    if (attemptFields.attempt_4) attemptFields.attempt_4.value = data.attempt_4 || '';
+                    if (attemptFields.attempt_5) attemptFields.attempt_5.value = data.attempt_5 || '';
+                    if (attemptFields.average) attemptFields.average.value = data.average || '';
+                    if (attemptFields.best) attemptFields.best.value = data.best || '';
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки результатов:', error);
+                    clearFields();
+                });
+        }
+
+        if (competitorSelect) competitorSelect.addEventListener('change', loadResults);
+        if (disciplineSelect) disciplineSelect.addEventListener('change', loadResults);
+        if (roundInput) roundInput.addEventListener('input', loadResults);
+    })();
+</script>
+{% endblock %}

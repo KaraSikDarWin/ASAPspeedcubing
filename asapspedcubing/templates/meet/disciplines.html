@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+{% load django_bootstrap5 %}
+    {% bootstrap_css %}
+<div class="card">
+    <h1>{{title}}</h1>
+    <div class="container-fluid">
+        {% for ds in disciplines %}
+            <div class="card primary">
+                <p>{{ds.name}}</p>
+            </div>
+            <hr>
+        {% endfor %}
+        <div>
+</div>
+{% endblock %}

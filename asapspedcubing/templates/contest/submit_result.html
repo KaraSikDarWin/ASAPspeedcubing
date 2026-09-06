@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Отправка результатов контеста "{{ meet.name }}"</h1>
+
+    <!-- Форма ввода результатов -->
+    <div class="card">
+        <div class="card-header">Ввести результат</div>
+        <div class="card-body">
+            <form method="post" name='add_result'>
+                {% csrf_token %}
+                {% bootstrap_form form_results %}
+                <button type="submit" name='add_result' class="btn btn-success">Сохранить результат</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+</script>
+{% endblock %}

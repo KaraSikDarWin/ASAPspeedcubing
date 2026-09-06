@@ -1,0 +1,109 @@
+<!-- footer.html -->
+<footer class="footer bg-dark text-white py-4 mt-auto">
+    <div class="container">
+        <div class="row">
+            <!-- Колонка 1: Бренд и описание -->
+            <div class="col-md-4 mb-3 mb-md-0">
+                <h5 class="navbar-brand mb-3 d-inline-block" style="font-size: 1,2rem;">
+                    Федерация спидкубинга Приморского края <br> АСАП_спидкубинг
+                </h5>
+                <p class="text-muted small">
+                    Платформа для организации и проведения соревнований и встреч по спидкубингу.
+                    Присоединяйтесь к нашему сообществу!
+                </p>
+            </div>
+            
+            <!-- Колонка 2: Быстрые ссылки -->
+            <div class="col-md-4 mb-3 mb-md-0">
+                <h6 class="text-uppercase mb-3" style="color: #adb5bd; font-size: 0.9rem;">Быстрые ссылки</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-1">
+                        <a href="{% url 'meet:index' %}" class="text-decoration-none text-muted footer-link">
+                            <i class="bi bi-house-door me-1"></i>Главная
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Колонка 3: Социальные сети и контакты -->
+            <div class="col-md-4">
+                <h6 class="text-uppercase mb-3" style="color: #adb5bd; font-size: 0.9rem;">Мы в соцсетях</h6>
+                <div class="d-flex gap-3 mb-3">
+                    <a href="https://t.me/speedcubing_dv" class="text-white social-icon" title="Telegram">
+                        <i class="bi bi-telegram fs-5"></i>
+                    </a>
+                    <a href="https://t.me/ASAP_speedcubing" class="text-white social-icon" title="Telegram_ASAP">
+                        <i class="bi bi-telegram fs-5"></i>
+                    </a>
+                </div>
+                <div>
+                    <p class="text-muted small mb-1">
+                        <i class="bi bi-envelope me-1"></i> speedcubingdv@gmail.com
+                    </p>
+                    <p class="text-muted small">
+                        <i class="bi bi-geo-alt me-1"></i> Владивосток, о.Русский, ДВФУ, корпус А, уровень 8, кабинет 809
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Разделитель -->
+        <hr class="border-secondary" style="opacity: 0.3;">
+        
+        <!-- Нижняя строка с копирайтом -->
+        <div class="row">
+            <div class="col-md-6 text-center text-md-start">
+                <p class="text-muted small mb-0">
+                    &copy; {% now "Y" %} Федерация спидкубинга Приморского края. Да прибудет с вами КУБ!.
+                </p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <p class="text-muted small mb-0">
+                    <span class="text-muted mx-1">|</span>
+                    <a href="#" class="text-decoration-none text-muted footer-link">Контакты</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+    .footer {
+        background-color: #212529 !important; 
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .footer .navbar-brand {
+        color: #ffffff !important;
+        font-weight: 500;
+    }
+    
+    .footer .navbar-brand:hover {
+        color: #d4d4d4 !important;
+    }
+    
+    .footer-link {
+        transition: color 0.2s ease, transform 0.2s ease;
+        display: inline-block;
+    }
+    
+    .footer-link:hover {
+        color: #ffffff !important;
+        transform: translateX(3px);
+    }
+    
+    .social-icon {
+        transition: transform 0.3s ease, color 0.3s ease;
+        display: inline-block;
+        color: #adb5bd !important;
+    }
+    
+    .social-icon:hover {
+        transform: translateY(-3px);
+        color: #ffffff !important;
+    }
+    
+    .footer hr {
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+</style>

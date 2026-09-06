@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% block content %}
+<div class="container mt-4">
+    <!-- Заголовок страницы -->
+    <div class="d-flex justify-content-between align-items-center ">
+        <h1 class="display-5">Удаление участника</h1>
+        <a href="{% url 'meet:competitors_list' %}" class="btn btn-outline-secondary">
+            <- Назад к списку
+        </a>
+    </div>
+
+    <div class="container">
+        <div class="card-header">
+      Удалить запись {{ object.pk }}
+    </div>
+    <div class="card-body">
+        <div class='m-1'>
+        <span>
+            Имя: {{ object.name }}
+        </span><br>
+        <span>
+            Фамилия: {{ object.surname }}
+        </span><br>
+        <span> 
+            RSF ID: {{ object.uni_id }}
+        </span>
+    </div>
+
+      <form method="post" class='m-1'>
+        {% csrf_token %}
+        {% bootstrap_button button_type="submit" content="Удалить" %}
+      </form>
+    </div>
+    </div>
+
+
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+<!-- meet/manage_files.html -->
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Управление файлами для "{{ meet.name }}"</h1>
+    
+    <!-- Список существующих файлов -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Загруженные файлы ({{ meet.files.count }})</h5>
+        </div>
+        <div class="card-body">
+            {% if meet.files.all %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Файл</th>
+                                <th>Дата загрузки</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in meet.files.all %}
+                            <tr>
+                                <td>{{ file.title|default:"Без названия" }}</td>
+                                <td>
+                                    <a href="{{ file.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> Скачать
+                                    </a>
+                                </td>
+                                <td>{{ file.uploaded_at|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'meet:delete_meet_file' meet.pk file.pk %}" 
+                                          style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger" 
+                                                onclick="return confirm('Удалить файл "{{ file.title }}"?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">Нет загруженных файлов</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Форма для добавления файлов -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Добавить файлы</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" id="file-form">
+                {% csrf_token %}
+                {{ formset.management_form }}
+                
+                <div id="file-forms">
+                    {% for form in formset %}
+                        <div class="file-form card mb-2 p-3">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    {{ form.file.label_tag }}
+                                    {{ form.file }}
+                                    {% if form.file.errors %}
+                                        <div class="text-danger">{{ form.file.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form.title.label_tag }}
+                                    {{ form.title }}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form.description.label_tag }}
+                                    {{ form.description }}
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    {% if form.instance.pk %}
+                                        {{ form.DELETE.label_tag }} {{ form.DELETE }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {{ form.id }}
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="button" class="btn btn-secondary" id="add-file-form">
+                    <i class="bi bi-plus-circle"></i> Добавить еще файл
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Сохранить
+                </button>
+                <a href="{% url 'meet:meet_detail' meet.pk %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Назад
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Добавление новых форм для файлов
+    document.getElementById('add-file-form').addEventListener('click', function() {
+        const totalForms = document.getElementById('id_files-TOTAL_FORMS');
+        const currentCount = parseInt(totalForms.value);
+        const newIndex = currentCount;
+        
+        // Клонируем последнюю форму
+        const lastForm = document.querySelector('.file-form:last-child');
+        if (lastForm) {
+            const newForm = lastForm.cloneNode(true);
+            
+            // Очищаем значения
+            newForm.querySelectorAll('input, textarea, select').forEach(el => {
+                if (el.type !== 'hidden') {
+                    el.value = '';
+                }
+                // Обновляем ID
+                const name = el.getAttribute('name');
+                if (name) {
+                    el.setAttribute('name', name.replace(/-\d+-/g, `-${newIndex}-`));
+                }
+                const id = el.getAttribute('id');
+                if (id) {
+                    el.setAttribute('id', id.replace(/-\d+-/g, `-${newIndex}-`));
+                }
+            });
+            
+            // Добавляем новую форму
+            document.getElementById('file-forms').appendChild(newForm);
+            totalForms.value = newIndex + 1;
+        }
+    });
+</script>
+{% endblock %}

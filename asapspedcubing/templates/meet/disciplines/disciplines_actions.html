@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% block content %}
+<div class="container mt-4">
+    <!-- Заголовок страницы -->
+    <div class="d-flex justify-content-between align-items-center ">
+        {% if 'create' in request.path %}
+        <h1 class="display-5">Добавление дисциплины</h1>
+        {% elif 'edit' in request.path %}
+        <h1 class="display-5">Обновление информации о дисциплине</h1>
+        {% endif %}
+
+        <a href="{% url 'meet:disciplines_list' %}" class="btn btn-outline-secondary">
+            <- Назад к списку
+        </a>
+    </div>
+
+    <div class="container">
+        <form method='post'>
+        {% bootstrap_form form %}
+        {% csrf_token %}
+        {% if 'create' in request.path %}
+        <button type="submit" class='btn btn-primary'>Добавить</button>
+        {% elif 'edit' in request.path%}
+        <button type="submit" class='btn btn-primary'>Изменить</button>
+        {% endif %}
+        </form>
+    </div>
+
+
+</div>
+{% endblock %}

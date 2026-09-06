@@ -1,0 +1,8 @@
+from django.apps import AppConfig
+
+
+class ContestConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'contest'
+    verbose_name = 'Контест'
+    verbose_name_plural = 'Контесты'

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% block content %}
+<div class="container mt-4">
+    <!-- Заголовок страницы -->
+    <div class="d-flex justify-content-between align-items-center ">
+        <h1 class="display-5">Изменение результата участника {{ object.competitor }}</h1>
+
+        <a href="{% url 'meet:meet_detail' object.meet.id %}" class="btn btn-outline-secondary">
+            <- Назад к списку
+        </a>
+    </div>
+
+    <div class="container">
+        <form method='post'>
+        {% bootstrap_form form %}
+        {% csrf_token %}
+        <button type="submit" class='btn btn-primary'>Изменить</button>
+        </form>
+    </div>
+
+
+</div>
+{% endblock %}

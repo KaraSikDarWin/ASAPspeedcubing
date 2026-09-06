@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Управление результатами для сходки "{{ meet.name }}"</h1>
+    <div>
+        <button type='button' id='edit-span' class='btn' style='background: #0d6efd; color: white' onclick="switchToggle()">Добавить</button>
+        <button type='button' id='remove-span' class='btn' onclick="switchToggle()">Удалить</button>
+    </div>
+
+    <div id='add-block' style='display:block' class="card mb-4">
+        <div class="card-header">Добавить участника к сходке</div>
+        <div class="card-body">
+            <form method="post" name="add_competitor">
+                {% csrf_token %}
+                {% bootstrap_form form_add %}
+                <button type="submit" name="add_competitor" class="btn btn-primary">Добавить</button>
+            </form>
+        </div>
+    </div>
+
+    <div id='remove-block' style='display: none' class="card mb-4" >
+        <div class="card-header">Удалить участника</div>
+        <div class="card-body">
+            <form method="post" name="delete_competitor">
+                {% csrf_token %}
+                {% bootstrap_form form_delete %}
+                <button type="submit" name="delete_competitor" class="btn btn-danger">Удалить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Форма ввода результатов -->
+    <div class="card">
+        <div class="card-header">Ввести результат</div>
+        <div class="card-body">
+            <form method="post" name='add_result'>
+                {% csrf_token %}
+                {% bootstrap_form form_results %}
+                <button type="submit" name='add_result' class="btn btn-success">Сохранить результат</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+
+     $(document).ready(function() {
+            $('#id_competitor').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Начните вводить имя или фамилию...',
+                allowClear: true,
+                width: '100%'
+            });
+        });
+
+    function switchToggle(){
+        
+        var edit_span = document.getElementById("edit-span");
+        var remove_span = document.getElementById("remove-span");
+        var edit_block = document.getElementById("add-block");
+        var remove_block = document.getElementById("remove-block");
+        if (edit_block.style.display === 'none'){
+            edit_span.style.background = '#0d6efd';
+            edit_span.style.color = 'white';
+            remove_span.style.background = 'none';
+            remove_span.style.color = 'black';
+            edit_block.style.display = 'block';
+            remove_block.style.display = 'none';
+        }else{
+            remove_block.style.display = 'block';
+            edit_block.style.display = 'none';
+            edit_span.style.background = 'none';
+            edit_span.style.color = 'black';
+            remove_span.style.background = '#dc3545';
+            remove_span.style.color = 'white';
+        }
+    }
+
+</script>
+{% endblock %}

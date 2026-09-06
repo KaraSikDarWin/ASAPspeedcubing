@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+{% block content %}
+<div class="container mt-4">
+    {% if '/edit/' in request.path %}
+    <h1>Изменения сходки</h1>
+    {% elif '/delete/' in request.path %}
+    <h1>Удалить сходку</h1>
+    {% else %}
+    <h1>Добавить сходку</h1>
+    {% endif %}
+
+    {% if '/delete/' not in request.path %}
+    <form method="post" id="meet-form">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <hr>
+        <h3>Дисциплины и количество раундов</h3>
+        {{ formset.management_form }}
+        <div id="discipline-forms">
+            {% for form in formset %}
+                <div class="discipline-form card p-3 mb-2">
+                    {{ form.id }} 
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.discipline.label_tag }} {{ form.discipline }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.rounds.label_tag }} {{ form.rounds }}
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            {% if form.instance.pk %}
+                                {{ form.DELETE.label_tag }} {{ form.DELETE }}
+                            {% endif %}
+                            <button type="button" class="btn btn-danger remove-form" style="margin-left: 10px;">✕</button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" id="add-form" class="btn btn-secondary mb-3">+ Добавить дисциплину</button>
+        <br>
+        <button type="submit" class="btn btn-primary">Сохранить сходку</button>
+    </form>
+    {% else %}
+    <form method='post'>
+        {% csrf_token %}
+    <div class="card">
+        <p>{{data.name}}</p>
+        <p>{{data.description}}</p>
+        <p>{{data.date}}</p>
+    </div>
+    <button type="submit" class="btn btn-danger">Удалить сходку</button>
+    </form>
+    {% endif %}
+</div>
+
+<script>
+    (function() {
+        const prefix = '{{ formset.prefix }}';
+        const totalForms = document.getElementById('id_' + prefix + '-TOTAL_FORMS');
+        const container = document.getElementById('discipline-forms');
+
+        // Функция для создания пустой формы на основе шаблона
+        function getEmptyForm() {
+            // Клонируем первую форму (если она есть) или создаём из management_form
+            const forms = container.querySelectorAll('.discipline-form');
+            if (forms.length === 0) {
+                // Если нет ни одной формы, создаём пустую вручную (но обычно extra=1 даёт одну)
+                return null;
+            }
+            const firstForm = forms[0];
+            const newForm = firstForm.cloneNode(true);
+            // Очищаем значения полей
+            newForm.querySelectorAll('input, select').forEach(el => {
+                if (el.type !== 'hidden' && el.type !== 'checkbox' && el.type !== 'radio') {
+                    el.value = '';
+                }
+                if (el.type === 'checkbox') {
+                    el.checked = false;
+                }
+            });
+            // Обновляем индексы в атрибутах name и id
+            const regex = new RegExp(prefix + '-(\\d+)-', 'g');
+            const newIndex = parseInt(totalForms.value);
+            newForm.innerHTML = newForm.innerHTML.replace(regex, prefix + '-' + newIndex + '-');
+            // Убираем чекбокс удаления, если он есть (для новых форм он не нужен)
+            // Но оставляем кнопку удаления, которую добавили вручную
+            // Удаляем скрытые поля с ID, если есть
+            const idField = newForm.querySelector('[name$="-id"]');
+            if (idField) idField.value = '';
+            return newForm;
+        }
+
+        // Добавление формы
+        document.getElementById('add-form').addEventListener('click', function() {
+            const newForm = getEmptyForm();
+            if (newForm) {
+                container.appendChild(newForm);
+                totalForms.value = parseInt(totalForms.value) + 1;
+            }
+        });
+
+        // Удаление формы (кнопка внутри каждой формы)
+        container.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-form')) {
+                const formDiv = e.target.closest('.discipline-form');
+                // Если форма уже сохранена (есть hidden id), то помечаем на удаление
+                const deleteCheckbox = formDiv.querySelector('[name$="-DELETE"]');
+                if (deleteCheckbox) {
+                    deleteCheckbox.checked = true;
+                    formDiv.style.display = 'none';  // скрываем визуально
+                } else {
+                    // Просто удаляем DOM-элемент
+                    formDiv.remove();
+                    // Уменьшаем общее количество форм
+                    totalForms.value = parseInt(totalForms.value) - 1;
+                }
+            }
+        });
+    })();
+</script>
+
+<!-- Дополнительные стили (необязательно) -->
+<style>
+    .discipline-form {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        transition: all 0.2s;
+    }
+    .discipline-form:hover {
+        background-color: #e9ecef;
+    }
+    .remove-form {
+        line-height: 1;
+    }
+</style>
+{% endblock %}
