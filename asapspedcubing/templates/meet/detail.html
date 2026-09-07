@@ -202,7 +202,7 @@
 </div> <!-- закрываем col-9 -->
 
 <!-- Боковая панель (сайтбар) -->
-  {% if meet.format_type.format_name != 'Контест' and user.is_authenticated %}
+  {% if meet.format_type.format_name == 'Сходка' and user.is_authenticated %}
   <div id="sidebar-block" class="card col-2 m-5 p-2" style="display:block">
     <div class='container mb-2'>
         <button type='button' id='edit-span' class='btn' style='background: #0d6efd; color: white' onclick="switchToggle()">Добавить</button>
@@ -216,7 +216,6 @@
             <button type="submit" name="add_competitor" class="btn btn-primary">Добавить</button>
         </form>
     </div>    
-
     <div class="container mb-4" style='display:none' id='remove-block'>  
       <h5>Удаление участников</h5>
       <form method="post" name="del_competitor">
@@ -236,7 +235,8 @@
         <button type="button" name="delete_result" class="btn btn-danger mt-1" onclick="delete_result()">Удалить</button>
     </div>
   </div>
-  {% else %}
+  {% endif %}
+  {% if meet.format_type.format_name == 'Контест' %}
   <div id="sidebar-block" class="card col-2 m-5 p-2" style="display:block">
     <div class="container">
       <h5>Ввод результатов</h5>
@@ -248,6 +248,7 @@
     </div>
   </div>
   {% endif %}
+  
 
 
 </div> <!-- закрываем row -->
@@ -365,55 +366,77 @@
 
     // Функция удаления (глобальная)
     function delete_result() {
-        // Получаем значения из полей
-        const competitorSelect = document.getElementById('id_competitor');
-        const disciplineSelect = document.getElementById('id_discipline');
-        const roundInput = document.getElementById('id_round_number');
-        
-        const competitorId = competitorSelect ? competitorSelect.value : null;
-        const disciplineId = disciplineSelect ? disciplineSelect.value : null;
-        const roundNumber = roundInput ? roundInput.value : null;
-        const meetPk = {{ meet.pk }};
+    // Получаем значения из полей
+    const competitorSelect = document.getElementById('id_competitor');
+    const disciplineSelect = document.getElementById('id_discipline');
+    const roundInput = document.getElementById('id_round_number');
+    
+    const competitorId = competitorSelect ? competitorSelect.value : null;
+    const disciplineId = disciplineSelect ? disciplineSelect.value : null;
+    const roundNumber = roundInput ? roundInput.value : null;
+    const meetPk = {{ meet.pk }};
 
-        if (!meetPk || !competitorId || !disciplineId || !roundNumber) {
-            alert('Пожалуйста, выберите участника, дисциплину и номер раунда');
-            return;
-        }
-
-        // Подтверждение удаления
-        if (!confirm('Вы уверены, что хотите удалить этот результат?')) {
-            return;
-        }
-
-        const url = `/api/v1/delete-results/?meet_pk=${meetPk}&competitor_id=${competitorId}&discipline_id=${disciplineId}&round=${roundNumber}`;
-
-        
-        fetch(url, {
-            method: 'DELETE',
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Ошибка сети');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.error) {
-                console.warn('API ошибка:', data.error);
-                alert('Ошибка: ' + data.error);
-                return;
-            }
-            alert('Результат успешно удалён');
-            // Очищаем поля
-            clearFields();
-            // Перезагружаем страницу для обновления таблицы
-            location.reload();
-        })
-        .catch(error => {
-            console.error('Ошибка удаления:', error);
-            alert('Произошла ошибка при удалении');
-        }); 
+    if (!meetPk || !competitorId || !disciplineId || !roundNumber) {
+        alert('Пожалуйста, выберите участника, дисциплину и номер раунда');
+        return;
     }
+
+    // Подтверждение удаления
+    if (!confirm('Вы уверены, что хотите удалить этот результат?')) {
+        return;
+    }
+
+    const url = `/api/v1/delete-results/?meet_pk=${meetPk}&competitor_id=${competitorId}&discipline_id=${disciplineId}&round=${roundNumber}`;
+
+    fetch(url, {
+        method: 'DELETE',
+        credentials: 'same-origin', // Добавляем куки в запрос
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'), // Добавляем CSRF токен
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 403) {
+                throw new Error('Доступ запрещен. Возможно, вы не авторизованы.');
+            }
+            throw new Error('Ошибка сети');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            console.warn('API ошибка:', data.error);
+            alert('Ошибка: ' + data.error);
+            return;
+        }
+        alert('Результат успешно удалён');
+        // Очищаем поля
+        clearFields();
+        // Перезагружаем страницу для обновления таблицы
+        location.reload();
+    })
+    .catch(error => {
+        console.error('Ошибка удаления:', error);
+        alert(error.message || 'Произошла ошибка при удалении');
+    });
+}
+
+// Функция для получения CSRF токена из кук
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 
     // Очистка полей (глобальная)
     function clearFields() {
