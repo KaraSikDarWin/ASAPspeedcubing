@@ -48,6 +48,18 @@ def format_time(value):
     else:
         return s
 
+def parse_avg(value):
+    """'14.56' -> 14.56 | '1:45.80' -> 105.80 | мусор/пусто -> inf"""
+    if not value:
+        return float('inf')
+    try:
+        if ':' in value:
+            m, s = value.split(':', 1)
+            return int(m) * 60 + float(s)
+        return float(value)
+    except (ValueError, TypeError):
+        return float('inf')
+
 
 def index(request):
     title = "Список мероприятий"
@@ -145,7 +157,10 @@ def meet_detail(request, pk):
     for i in disciplines_with_rounds:
         rounds = []
         for j in range(i.rounds):
-            res = results.filter(discipline=i.discipline, round_number=j+1).order_by('average')
+            res = sorted(
+                results.filter(discipline=i.discipline, round_number=j+1),
+                key=lambda r: parse_avg(r.average),
+            )
             for p in res:
                 p.attempt_1 = format_time(p.attempt_1)
                 p.attempt_2 = format_time(p.attempt_2)
