@@ -25,8 +25,8 @@ class ResultsContestForm(forms.Form):
     attempt_1 = forms.CharField(max_length=10, label="Первая попытка")
     attempt_2 = forms.CharField(max_length=10, label="Вторая попытка")
     attempt_3 = forms.CharField(max_length=10, label="Третья попытка")
-    attempt_4 = forms.CharField(max_length=10, label="Четвертая попытка")
-    attempt_5 = forms.CharField(max_length=10, label="Пятая попытка")
+    attempt_4 = forms.CharField(max_length=10, label="Четвертая попытка", required=False)
+    attempt_5 = forms.CharField(max_length=10, label="Пятая попытка", required=False)
 
     def __init__(self, *args, meet_pk=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,5 +58,10 @@ class ResultsContestForm(forms.Form):
 
         if round_number > max_rounds:
             raise forms.ValidationError(f"Для выбранной дисциплины доступно только {max_rounds} раундов.")
+
+        fmt = discipline.result_format.name
+        if (fmt == 'Ao5') and (not cleaned_data.get('attempt_4') and not cleaned_data.get('attempt_5')):
+            self.add_error('attempt_4', 'Это поле обязательно для этого формата.')
+            self.add_error('attempt_5', 'Это поле обязательно для этого формата.')
 
         return cleaned_data

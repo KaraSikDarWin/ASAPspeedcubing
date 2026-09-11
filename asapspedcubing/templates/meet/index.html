@@ -31,6 +31,9 @@
                                                 {% elif mt.format_type.format_name == "Контест" %} 
                                                 text-info {% else %} 
                                                 {% endif %}'>{{mt.format_type.format_name}}</span></strong> 
+                                {% endif %}<br>
+                                {% if user.is_authenticated %}
+                                <strong>Статус: </strong>{% if mt.is_published %}<span class='text-success'>Опубликовано</span>{% else %}<span class='text-danger'>Не опубликовано</span>{% endif %}
                                 {% endif %}
                             </p>
                             <div class="mt-auto d-flex gap-2 flex-wrap">

@@ -63,7 +63,10 @@ def parse_avg(value):
 
 def index(request):
     title = "Список мероприятий"
-    meets = Meet.objects.all().select_related('format_type').order_by('-date')
+    if not request.user.is_authenticated:
+        meets = Meet.objects.filter(is_published=True).select_related('format_type').order_by('-date')
+    else:
+        meets = Meet.objects.all().select_related('format_type').order_by('-date')
     paginator = Paginator(meets, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -143,13 +146,14 @@ def list_competitors(request):
 
 
 def meet_detail(request, pk):
-
     meet = Meet.objects.get(pk=pk)
     if (meet.format_type.format_name == 'Сходка'):
         results = Results.objects.filter(meet__pk=pk).select_related(
             'competitor', 'discipline').order_by('competitor__surname', 'discipline__name', 'round_number')
     elif (meet.format_type.format_name in ['Контест', 'Топ-кубик']):
         results = ResultsContest.objects.filter(meet__pk=pk).select_related('discipline').order_by('competitor', 'discipline__name', 'round_number')
+
+    disciplines = meet.disciplines.distinct()
 
     disciplines_with_rounds = RoundsOfDiscipline.objects.filter(
         meet__pk=pk).select_related("discipline")
@@ -173,7 +177,7 @@ def meet_detail(request, pk):
                     'results': res
                 }
             )
-        all_res.append([i.discipline.name, rounds])
+        all_res.append([i.discipline.name, rounds, i.discipline.result_format.name])
 
     add_result_form = ResultsForm(meet_pk=pk)
     form_add = ExcludeCompetitors(meet_pk=pk)
@@ -272,13 +276,15 @@ def meet_detail(request, pk):
                 else:
                     print("Ошибки отправки:", add_result_contest.errors)
 
+                print(all_res)
     context = {
         "meet": meet,
         "results": all_res,
         'add_result_form': add_result_form,
         'add_competitor_form': form_add,
         'form_delete': form_delete,
-        'add_result_contest': add_result_contest
+        'add_result_contest': add_result_contest,
+        'disciplines': disciplines
     }
     return render(request, "meet/detail.html", context)
 

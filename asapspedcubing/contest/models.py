@@ -21,43 +21,64 @@ class ResultsContest(models.Model):
 
 
     def save(self, *args, **kwargs):
-        # Парсим попытки, но не изменяем сами поля (храним ввод пользователя)
-        parsed = [
-            parse_time_string_to_seconds(self.attempt_1),
-            parse_time_string_to_seconds(self.attempt_2),
-            parse_time_string_to_seconds(self.attempt_3),
-            parse_time_string_to_seconds(self.attempt_4),
-            parse_time_string_to_seconds(self.attempt_5)
-        ]
+        if self.discipline.result_format.name == 'Ao5':
+            parsed = [
+                parse_time_string_to_seconds(self.attempt_1),
+                parse_time_string_to_seconds(self.attempt_2),
+                parse_time_string_to_seconds(self.attempt_3),
+                parse_time_string_to_seconds(self.attempt_4),
+                parse_time_string_to_seconds(self.attempt_5)
+            ]
+            valid = [x for x in parsed if x is not None]
+
+            # Вычисление лучшего времени (минимальное числовое, DNF игнорируется)
+            numeric = [x for x in valid if x != float('inf')]
+            if numeric:
+                best_sec = min(numeric)
+                self.best = seconds_to_time_format_floor(best_sec)
+            else:
+                self.best = "DNF"
+
+            # Вычисление среднего (удаление лучшей и худшей, если >=3 попыток)
+            if len(valid) < 3:
+                self.average = "DNF"
+            else:
+                sorted_vals = sorted(valid)          # inf (DNF) будет в конце
+                middle_three = sorted_vals[1:-1]     # удаляем лучшую и худшую
+                if any(x == float('inf') for x in middle_three):
+                    self.average = "DNF"
+                else:
+                    print(middle_three)
+                    avg = round((sum(middle_three) / 3), 2)
+                    self.average = seconds_to_time_format_floor(avg)
+
+
+        elif self.discipline.result_format.name == 'Mo3':
+            parsed = [
+                        parse_time_string_to_seconds(self.attempt_1),
+                        parse_time_string_to_seconds(self.attempt_2),
+                        parse_time_string_to_seconds(self.attempt_3),
+                    ]
+            valid = [x for x in parsed if x is not None]
+            numeric = [x for x in valid if x != float('inf')]
+            if numeric:
+                best_sec = min(numeric)
+                self.best = seconds_to_time_format_floor(best_sec)
+            else:
+                self.best = "DNF"
+
+            if len(valid) < 2:
+                self.average = "DNF"
+            else:
+                avg = round((sum(valid) / 3), 2)
+                self.average = seconds_to_time_format_floor(avg)
 
 
         # Убираем None (пустые или нулевые попытки)
-        valid = [x for x in parsed if x is not None]
-
-        # Вычисление лучшего времени (минимальное числовое, DNF игнорируется)
-        numeric = [x for x in valid if x != float('inf')]
-        print(numeric)
-        if numeric:
-            best_sec = min(numeric)
-            self.best = seconds_to_time_format_floor(best_sec)
-        else:
-            self.best = "DNF"
-
-        # Вычисление среднего (удаление лучшей и худшей, если >=3 попыток)
-        if len(valid) < 3:
-            self.average = "DNF"
-        else:
-            sorted_vals = sorted(valid)          # inf (DNF) будет в конце
-            middle_three = sorted_vals[1:-1]     # удаляем лучшую и худшую
-            if any(x == float('inf') for x in middle_three):
-                self.average = "DNF"
-            else:
-                avg = round((sum(middle_three) / 3), 2)
-                self.average = seconds_to_time_format_floor(avg)
+        
 
         # Сохраняем модель (поля attempt_* остаются в исходном виде)
         super().save(*args, **kwargs)
-
     class Meta:
         verbose_name = "Результат"
         verbose_name_plural = "Результаты"

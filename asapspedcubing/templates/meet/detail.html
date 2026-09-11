@@ -38,7 +38,7 @@
     </div>
 
     <!-- Перебор дисциплин и раундов -->
-    {% for discipline, rounds in results %}
+    {% for discipline, rounds, result_format in results %}
         <div class="card mb-4 shadow-sm">
             <div class="card-header bg-primary text-white">
                 <h3 class="mb-0">{{ discipline }}</h3>
@@ -56,8 +56,10 @@
                                             <th>Попытка 1</th>
                                             <th>Попытка 2</th>
                                             <th>Попытка 3</th>
+                                            {% if result_format == 'Ao5' %}
                                             <th>Попытка 4</th>
                                             <th>Попытка 5</th>
+                                            {% endif %}
                                             <th class="table-warning">Среднее</th>
                                             <th class="table-success">Лучшее</th>
                                             {% if user.is_authenticated and meet.format_type.format_name == 'Контест'%}
@@ -80,8 +82,10 @@
                                                 <td>{{ attempt.attempt_1|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_2|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_3|default:"—" }}</td>
+                                                {% if result_format == 'Ao5' %}
                                                 <td>{{ attempt.attempt_4|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_5|default:"—" }}</td>
+                                                {% endif %}
                                                 <td class="table-warning">{{ attempt.average|default:"—" }}</td>
                                                 <td class="table-success">{{ attempt.best|default:"—" }}</td>
                                             </tr>
@@ -99,8 +103,10 @@
                                                 <td>{{ attempt.attempt_1|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_2|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_3|default:"—" }}</td>
+                                                {% if result_format == 'Ao5' %}
                                                 <td>{{ attempt.attempt_4|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_5|default:"—" }}</td>
+                                                {% endif %}
                                                 <td class="table-warning">{{ attempt.average|default:"—" }}</td>
                                                 <td class="table-success">{{ attempt.best|default:"—" }}</td>
                                                 {% if user.is_authenticated and meet.format_type.format_name == 'Контест'%}
@@ -284,6 +290,38 @@
             });
         });
 
+
+    const DISC_FORMATS = {
+        {% for d in disciplines %}
+            "{{ d.id }}": "{{ d.result_format.name|escapejs }}",
+        {% endfor %}
+    };
+
+    const ATTEMPTS_BY_FORMAT = { Ao5: 5, Mo3: 3 };
+    const DEFAULT_ATTEMPTS = 5;
+
+    function updateAttempts() {
+        const discSelect = document.getElementById('id_discipline');
+        if (!discSelect) return;
+
+        const fmt = DISC_FORMATS[discSelect.value];
+        const needed = ATTEMPTS_BY_FORMAT[fmt] || DEFAULT_ATTEMPTS;
+
+        for (let i = 1; i <= 5; i++) {
+            const row = document.getElementById('id_attempt_' + i)?.closest('.mb-3');
+            if (!row) continue;
+            row.style.display = (i <= needed) ? '' : 'none';
+            // опционально — очистить скрытые поля
+            if (i > needed) {
+                const inp = document.getElementById('id_attempt_' + i);
+                if (inp) inp.value = '';
+            }
+        }
+    }
+
+    document.getElementById('id_discipline')
+        ?.addEventListener('change', updateAttempts);
+    updateAttempts();  // при загрузке страницы
 
 
     // Функция для переключения видимости формы (глобальная)

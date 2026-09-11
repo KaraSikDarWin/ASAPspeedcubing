@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Competitors, Discipline, Meet, RoundsOfDiscipline, Results, FormatType
+from .models import Competitors, Discipline, Meet, RoundsOfDiscipline, Results, FormatType, ResultFormat
 
 class RoundsOfDisciplineInstanceInline(admin.TabularInline):
     model = RoundsOfDiscipline
@@ -16,3 +16,4 @@ admin.site.register(Competitors)
 admin.site.register(RoundsOfDiscipline)
 admin.site.register(Results)
 admin.site.register(FormatType)
+admin.site.register(ResultFormat)
