@@ -48,7 +48,6 @@ class ResultsContest(models.Model):
                 if any(x == float('inf') for x in middle_three):
                     self.average = "DNF"
                 else:
-                    print(middle_three)
                     avg = round((sum(middle_three) / 3), 2)
                     self.average = seconds_to_time_format_floor(avg)
 
@@ -72,9 +71,6 @@ class ResultsContest(models.Model):
             else:
                 avg = round((sum(valid) / 3), 2)
                 self.average = seconds_to_time_format_floor(avg)
-
-
-        # Убираем None (пустые или нулевые попытки)
         
 
         # Сохраняем модель (поля attempt_* остаются в исходном виде)

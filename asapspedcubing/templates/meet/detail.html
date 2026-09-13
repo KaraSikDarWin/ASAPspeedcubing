@@ -33,15 +33,18 @@
             
             <button class="btn btn-outline-primary" onclick="toggleSidebar()">Ввод результатов</button>
             <a href="{% url 'meet:manage_meet_files' meet.id %}" class="btn btn-outline-info">Добавить файлы</a>
+            {% if meet.format_type.format_name == 'Контест' %}
+            <button class="btn btn-outline-secondary" onclick="toggleAdminActions()">Скрыть админ действия</button>
+            {% endif %}
             {% endif %}
           </div>
     </div>
 
     <!-- Перебор дисциплин и раундов -->
     {% for discipline, rounds, result_format in results %}
-        <div class="card mb-4 shadow-sm">
+        <div class="card mb-4 shadow-sm" id='discipline-capture-{{ discipline.id }}'>
             <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">{{ discipline }}</h3>
+                <h3 class="mb-0">{{ discipline.name }}</h3>
             </div>
             <div class="card-body">
                 {% for round in rounds %}
@@ -49,9 +52,10 @@
                         <h4 class="text-secondary">Раунд {{ round.number }}</h4>
                         {% if round.results %}
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover table-bordered align-middle">
+                                <table class="table table-striped table-hover table-bordered table-sm align-middle">
                                     <thead class="table-light">
                                         <tr>
+                                            <th>№</th>
                                             <th>Имя</th>
                                             <th>Попытка 1</th>
                                             <th>Попытка 2</th>
@@ -63,8 +67,8 @@
                                             <th class="table-warning">Среднее</th>
                                             <th class="table-success">Лучшее</th>
                                             {% if user.is_authenticated and meet.format_type.format_name == 'Контест'%}
-                                            <th>Состояние</th>
-                                            <th>Действие</th>
+                                            <th class='adminActions'>Состояние</th>
+                                            <th class='adminActions'>Действие</th>
                                             {% endif %}
                                         </tr>
                                     </thead>
@@ -73,7 +77,9 @@
                                         {% if user.is_authenticated == 0 %}
                                         {% for attempt in round.results %}
                                           {% if attempt.is_published or meet.format_type.format_name == 'Сходка' %}
+                                            
                                             <tr>
+                                                <td>{{forloop.counter}}</td>
                                                 {% if meet.format_type.format_name == 'Сходка' %}
                                                 <td>{{ attempt.competitor.name }} {{ attempt.competitor.surname }}</td>
                                                 {% elif meet.format_type.format_name == 'Контест' %}
@@ -93,8 +99,9 @@
                                         {% endfor %}
 
                                         {% else %}
-                                            {% for attempt in round.results %}
+                                            {% for attempt in round.results %}                                
                                             <tr>
+                                                <td>{{forloop.counter}}</td>
                                                 {% if meet.format_type.format_name == 'Сходка' %}
                                                 <td>{{ attempt.competitor.name }} {{ attempt.competitor.surname }}</td>
                                                 {% elif meet.format_type.format_name == 'Контест' or meet.format_type.format_name == 'Топ-кубик' %}
@@ -110,13 +117,13 @@
                                                 <td class="table-warning">{{ attempt.average|default:"—" }}</td>
                                                 <td class="table-success">{{ attempt.best|default:"—" }}</td>
                                                 {% if user.is_authenticated and meet.format_type.format_name == 'Контест'%}
-                                                <td>{% if attempt.is_published %}
+                                                <td class='adminActions'>{% if attempt.is_published %}
                                                   <span class='btn btn-success'>Опубликовано</span>
                                                   {% else %}
                                                   <span class='btn btn-danger'>Не опубликовано</span>
                                                   {% endif %}
                                                 </td>
-                                                <td>
+                                                <td class='adminActions'>
                                                 <form method='post' action="{% url 'meet:change_result_status' %}" class='mb-2'> 
                                                   {% csrf_token %}
                                                   <input type="hidden" name="result_id" value={{ attempt.id }}>
@@ -131,7 +138,24 @@
                                         {% endfor %}
                                         {% endif %}
                                     </tbody>
+                                    {% if user.is_authenticated and meet.format_type.format_name == 'Контест'%}
+                                    <tfoot class='adminActions'>
+                                        <tr>
+                                            <td colspan="100%">
+                                                <form method='post' action="{% url 'meet:change_result_status' %}" class='m-2'> 
+                                                  {% csrf_token %}
+                                                  <input type="hidden" name="round_id" value={{ round.number }}>
+                                                  <input type="hidden" name="discipline" value={{ discipline.id }}>
+                                                  <input type="hidden" name="meet_id" value={{ meet.id }}>
+                                                  <input type="hidden" name="action" value="toggle_status_all_results">
+                                                <button type='submit' class='btn btn-success'>Опубликовать все результаты раунда</button>
+                                        </form>
+                                    </td>
+                                    </tr>
+                                    </tfoot>
+                                    {% endif %}
                                 </table>
+                                
                             </div>
                         {% else %}
                             <div class="alert alert-light text-muted" role="alert">
@@ -144,6 +168,17 @@
                         Нет раундов для этой дисциплины.
                     </div>
                 {% endfor %}
+                {% if user.is_authenticated %}
+                    <button type="button"
+                    class="btn btn-warning"
+                    onclick="downloadDiscipline(
+                    'discipline-capture-{{ discipline.id }}',
+                        '{{ discipline.name|escapejs }}',
+                        this
+                    )">
+                Скачать картинку с результатами дисциплины
+            </button>
+            {% endif %}
             </div>
         </div>
         
@@ -261,7 +296,72 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
+
+    async function downloadDiscipline(elementId, filename, btn) {
+    const el = document.getElementById(elementId);
+    if (!el) {
+        console.warn('Не найден элемент:', elementId);
+        return;
+    }
+
+    if (btn) btn.disabled = true;
+
+    // Сохраняем оригинальные стили всех table-responsive внутри,
+    // чтобы в картинку влезли все таблицы целиком
+    const responsiveBlocks = el.querySelectorAll('.table-responsive');
+    const savedStyles = [];
+    responsiveBlocks.forEach(block => {
+        savedStyles.push({
+            el: block,
+            overflow: block.style.overflow,
+            width: block.style.width,
+        });
+        block.style.overflow = 'visible';
+        block.style.width = 'max-content';
+    });
+
+    // Также снимаем ограничения с контейнеров-родителей
+    const cardBody = el.querySelector('.card-body');
+    const savedCardBodyOverflow = cardBody ? cardBody.style.overflow : null;
+    if (cardBody) cardBody.style.overflow = 'visible';
+
+    try {
+        const canvas = await html2canvas(el, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            windowWidth: el.scrollWidth,   // важно для широких таблиц
+            width: el.scrollWidth,
+            ignoreElements: (e) =>
+                e.classList?.contains('adminActions') ||
+                e.tagName === 'BUTTON',     // скрыть все кнопки скачивания
+        });
+
+        const link = document.createElement('a');
+        link.download = `${filename}.png`;
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (err) {
+        console.error('html2canvas error:', err);
+        alert('Не удалось сохранить картинку');
+    } finally {
+        // возвращаем как было
+        savedStyles.forEach(s => {
+            s.el.style.overflow = s.overflow;
+            s.el.style.width = s.width;
+        });
+        if (cardBody && savedCardBodyOverflow !== null) {
+            cardBody.style.overflow = savedCardBodyOverflow;
+        }
+        if (btn) btn.disabled = false;
+    }
+}
+
 
     $(document).ready(function() {
             $('#id_competitor').select2({
@@ -297,7 +397,7 @@
         {% endfor %}
     };
 
-    const ATTEMPTS_BY_FORMAT = { Ao5: 5, Mo3: 3 };
+    const ATTEMPTS_BY_FORMAT = { Ao5: 5, Mo3: 3, FMC:3 };
     const DEFAULT_ATTEMPTS = 5;
 
     function updateAttempts() {
@@ -322,6 +422,24 @@
     document.getElementById('id_discipline')
         ?.addEventListener('change', updateAttempts);
     updateAttempts();  // при загрузке страницы
+
+
+    var adminActionsFlag = true
+    function toggleAdminActions(){
+        elems = document.querySelectorAll('.adminActions');
+        if (adminActionsFlag) {
+            elems.forEach(row => {
+                row.style.display = 'none';
+                adminActionsFlag = false;
+            })
+        }else{
+            elems.forEach(row => {
+                row.style.display = '';
+                adminActionsFlag = true;
+            })
+        }
+        
+    }
 
 
     // Функция для переключения видимости формы (глобальная)

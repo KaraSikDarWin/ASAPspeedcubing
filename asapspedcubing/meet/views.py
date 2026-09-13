@@ -165,19 +165,20 @@ def meet_detail(request, pk):
                 results.filter(discipline=i.discipline, round_number=j+1),
                 key=lambda r: parse_avg(r.average),
             )
-            for p in res:
-                p.attempt_1 = format_time(p.attempt_1)
-                p.attempt_2 = format_time(p.attempt_2)
-                p.attempt_3 = format_time(p.attempt_3)
-                p.attempt_4 = format_time(p.attempt_4)
-                p.attempt_5 = format_time(p.attempt_5)
+            if i.discipline.result_format.name != "FMC":
+                for p in res:
+                    p.attempt_1 = format_time(p.attempt_1)
+                    p.attempt_2 = format_time(p.attempt_2)
+                    p.attempt_3 = format_time(p.attempt_3)
+                    p.attempt_4 = format_time(p.attempt_4)
+                    p.attempt_5 = format_time(p.attempt_5)
             rounds.append(
                 {
                     'number': j+1,
                     'results': res
                 }
             )
-        all_res.append([i.discipline.name, rounds, i.discipline.result_format.name])
+        all_res.append([i.discipline, rounds, i.discipline.result_format.name])
 
     add_result_form = ResultsForm(meet_pk=pk)
     form_add = ExcludeCompetitors(meet_pk=pk)
@@ -275,8 +276,6 @@ def meet_detail(request, pk):
                         return redirect('meet:meet_detail', pk=meet.pk)
                 else:
                     print("Ошибки отправки:", add_result_contest.errors)
-
-                print(all_res)
     context = {
         "meet": meet,
         "results": all_res,
@@ -471,14 +470,27 @@ def delete_meet(request, pk):
 @login_required
 def change_result_status(request):
     if request.method == 'POST':
-        result_id = int(request.POST.get('result_id'))
-        try:
-            result = ResultsContest.objects.get(id=result_id)
-            result.is_published = not result.is_published
-            result.save()
-            messages.success(request, f'Статус изменен на {"Опубликовано" if result.is_published else "Скрыто"}')
-        except ResultsContest.DoesNotExist:
-            messages.error(request, 'Результат не найден')
+        if request.POST.get('action') == 'toggle_status':
+            result_id = int(request.POST.get('result_id'))
+            try:
+                result = ResultsContest.objects.get(id=result_id)
+                result.is_published = not result.is_published
+                result.save()
+                messages.success(request, f'Статус изменен на {"Опубликовано" if result.is_published else "Скрыто"}')
+            except ResultsContest.DoesNotExist:
+                messages.error(request, 'Результат не найден')
+        elif request.POST.get('action') == 'toggle_status_all_results':
+            round_id = int(request.POST.get('round_id'))
+            discipline_id = request.POST.get('discipline')
+            meet_id = request.POST.get('meet_id')
+            try:
+                results = ResultsContest.objects.filter(round_number=round_id, meet__id=meet_id, discipline__id=discipline_id)
+                for res in results:
+                    res.is_published = True
+                    res.save()
+                messages.success(request, 'Статус всех результатов изменен на "Опубликовано"')
+            except:
+                messages.error(request, 'Результаты не найден')
         
         # Перенаправляем обратно
         return redirect(request.META.get('HTTP_REFERER', 'meet:index'))

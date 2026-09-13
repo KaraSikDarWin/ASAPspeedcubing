@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <!-- Заголовок страницы -->
     <div class="d-flex justify-content-between align-items-center ">
-        <h1 class="display-5">Участники</h1>
+        <h1 class="display-5">Дисциплины</h1>
         {% if user.is_authenticated %}
         <div>
         <a href="{% url 'meet:disciplines_create' %}" class="btn btn-success">
@@ -19,8 +19,10 @@
         <div class='d-flex justify-content-between container-fluid align-items-center m-3 border border-primary p-3 rounded-pill'>
             
         <h5 class='m-0'>
-            {{disc.name}}<br> 
-            Код: {{disc.slug_id}}
+            <p class='m-0 p-2'>{{disc.name}}<br> 
+            Код: {{disc.slug_id}}<br>
+            Формат результата{{disc.result_format.name}}</p>
+
         </h5>
         <div class='m-0'>
             {% if user.is_authenticated %}

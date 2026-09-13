@@ -329,6 +329,29 @@ class Results(models.Model):
             else:
                 avg = round((sum(valid) / 3), 2)
                 self.average = seconds_to_time_format_floor(avg)
+
+        elif self.discipline.result_format.name == 'FMC':
+            parsed = [
+                int(self.attempt_1),
+                int(self.attempt_2),
+                int(self.attempt_3)
+            ]
+            print(parsed)
+            valid = [x for x in parsed if x is not None]
+            numeric = [x for x in valid if x != float('inf')]
+            print(numeric)
+            if numeric:
+                best_sec = min(numeric)
+                self.best = best_sec
+            else:
+                self.best = "DNF"
+
+            if len(valid) < 2:
+                self.average = "DNF"
+            else:
+                avg = round((sum(valid) / 3), 2)
+                self.average = avg
+
         super().save(*args, **kwargs)
 
     class Meta:

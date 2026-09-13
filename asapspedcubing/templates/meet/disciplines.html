@@ -8,7 +8,8 @@
     <div class="container-fluid">
         {% for ds in disciplines %}
             <div class="card primary">
-                <p>{{ds.name}}</p>
+                <p>{{ds.name}}</p><br>
+                <p>{{ds.result_format.name}}</p>
             </div>
             <hr>
         {% endfor %}
