@@ -13,8 +13,8 @@ class ResultsContest(models.Model):
     attempt_1 = models.CharField(max_length=15, default=0, verbose_name="Первая попытка")
     attempt_2 = models.CharField(max_length=15, default=0, verbose_name="Вторая попытка")
     attempt_3 = models.CharField(max_length=15, default=0, verbose_name="Третья попытка")
-    attempt_4 = models.CharField(max_length=15, default=0, verbose_name="Четвертая попытка")
-    attempt_5 = models.CharField(max_length=15, default=0, verbose_name="Пятая попытка")
+    attempt_4 = models.CharField(max_length=15, default=0, verbose_name="Четвертая попытка", blank=True)
+    attempt_5 = models.CharField(max_length=15, default=0, verbose_name="Пятая попытка", blank=True)
 
     average = models.CharField(max_length=8, verbose_name="Среднее")
     best = models.CharField(max_length=8, verbose_name="Лучшее")
@@ -71,6 +71,28 @@ class ResultsContest(models.Model):
             else:
                 avg = round((sum(valid) / 3), 2)
                 self.average = seconds_to_time_format_floor(avg)
+
+        elif self.discipline.result_format.name == 'FMC':
+            parsed = [
+                int(self.attempt_1),
+                int(self.attempt_2),
+                int(self.attempt_3)
+            ]
+            print(parsed)
+            valid = [x for x in parsed if x is not None]
+            numeric = [x for x in valid if x != float('inf')]
+            print(numeric)
+            if numeric:
+                best_sec = min(numeric)
+                self.best = best_sec
+            else:
+                self.best = "DNF"
+
+            if len(valid) < 2:
+                self.average = "DNF"
+            else:
+                avg = round((sum(valid) / 3), 2)
+                self.average = avg
         
 
         # Сохраняем модель (поля attempt_* остаются в исходном виде)

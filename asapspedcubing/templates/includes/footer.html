@@ -1,65 +1,79 @@
 <!-- footer.html -->
 <footer class="footer bg-dark text-white py-4 mt-auto">
     <div class="container">
-        <div class="row">
+        <div class="row g-4">
             <!-- Колонка 1: Бренд и описание -->
-            <div class="col-md-4 mb-3 mb-md-0">
-                <h5 class="navbar-brand mb-3 d-inline-block" style="font-size: 1,2rem;">
-                    Федерация спидкубинга Приморского края <br> АСАП_спидкубинг
+            <div class="col-12 col-md-4 text-center text-md-start">
+                <h5 class="footer-brand mb-3">
+                    Федерация спидкубинга Приморского края
+                    <br>
+                    <span class="text-info">АСАП_спидкубинг</span>
                 </h5>
-                <p class="text-muted small">
+                <p class="text-muted small mb-0">
                     Платформа для организации и проведения соревнований и встреч по спидкубингу.
                     Присоединяйтесь к нашему сообществу!
                 </p>
             </div>
-            
+
             <!-- Колонка 2: Быстрые ссылки -->
-            <div class="col-md-4 mb-3 mb-md-0">
-                <h6 class="text-uppercase mb-3" style="color: #adb5bd; font-size: 0.9rem;">Быстрые ссылки</h6>
-                <ul class="list-unstyled">
-                    <li class="mb-1">
+            <div class="col-12 col-md-4 text-center text-md-start">
+                <h6 class="footer-heading text-uppercase mb-3">Быстрые ссылки</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
                         <a href="{% url 'meet:index' %}" class="text-decoration-none text-muted footer-link">
                             <i class="bi bi-house-door me-1"></i>Главная
                         </a>
                     </li>
                 </ul>
             </div>
-            
+
             <!-- Колонка 3: Социальные сети и контакты -->
-            <div class="col-md-4">
-                <h6 class="text-uppercase mb-3" style="color: #adb5bd; font-size: 0.9rem;">Мы в соцсетях</h6>
-                <div class="d-flex gap-3 mb-3">
-                    <a href="https://t.me/speedcubing_dv" class="text-white social-icon" title="Telegram">
-                        <i class="bi bi-telegram fs-5"></i>
+            <div class="col-12 col-md-4 text-center text-md-start">
+                <h6 class="footer-heading text-uppercase mb-3">Мы в соцсетях</h6>
+
+                <div class="d-flex gap-3 mb-3 justify-content-center justify-content-md-start">
+                    <a href="https://t.me/speedcubing_dv"
+                       class="text-white social-icon"
+                       title="Telegram: speedcubing_dv"
+                       aria-label="Telegram Федерация">
+                        <i class="bi bi-telegram"></i>
                     </a>
-                    <a href="https://t.me/ASAP_speedcubing" class="text-white social-icon" title="Telegram_ASAP">
-                        <i class="bi bi-telegram fs-5"></i>
+                    <a href="https://t.me/ASAP_speedcubing"
+                       class="text-white social-icon"
+                       title="Telegram: ASAP_speedcubing"
+                       aria-label="Telegram ASAP">
+                        <i class="bi bi-telegram"></i>
                     </a>
                 </div>
-                <div>
+
+                <div class="footer-contacts">
                     <p class="text-muted small mb-1">
-                        <i class="bi bi-envelope me-1"></i> speedcubingdv@gmail.com
+                        <i class="bi bi-envelope me-1"></i>
+                        <a href="mailto:speedcubingdv@gmail.com"
+                           class="text-muted text-decoration-none footer-link">
+                            speedcubingdv@gmail.com
+                        </a>
                     </p>
-                    <p class="text-muted small">
-                        <i class="bi bi-geo-alt me-1"></i> Владивосток, о.Русский, ДВФУ, корпус А, уровень 8, кабинет 809
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-geo-alt me-1"></i>
+                        Владивосток, о. Русский, ДВФУ, корпус А,<br class="d-md-none">
+                        уровень 8, каб. 809
                     </p>
                 </div>
             </div>
         </div>
-        
-        <!-- Разделитель -->
-        <hr class="border-secondary" style="opacity: 0.3;">
-        
-        <!-- Нижняя строка с копирайтом -->
-        <div class="row">
-            <div class="col-md-6 text-center text-md-start">
+
+        <hr class="border-secondary my-4" style="opacity: 0.3;">
+
+        <div class="row g-2">
+            <div class="col-12 col-md-6 text-center text-md-start">
                 <p class="text-muted small mb-0">
-                    &copy; {% now "Y" %} Федерация спидкубинга Приморского края. Да прибудет с вами КУБ!.
+                    &copy; {% now "Y" %} Федерация спидкубинга Приморского края.
+                    Да прибудет с вами КУБ!
                 </p>
             </div>
-            <div class="col-md-6 text-center text-md-end">
+            <div class="col-12 col-md-6 text-center text-md-end">
                 <p class="text-muted small mb-0">
-                    <span class="text-muted mx-1">|</span>
                     <a href="#" class="text-decoration-none text-muted footer-link">Контакты</a>
                 </p>
             </div>
@@ -69,41 +83,79 @@
 
 <style>
     .footer {
-        background-color: #212529 !important; 
+        background-color: #212529 !important;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
-    
-    .footer .navbar-brand {
-        color: #ffffff !important;
+
+    /* Заголовок бренда */
+    .footer-brand {
+        color: #ffffff;
         font-weight: 500;
+        font-size: 1.1rem;
+        line-height: 1.35;
+        margin: 0;
     }
-    
-    .footer .navbar-brand:hover {
-        color: #d4d4d4 !important;
+
+    /* Заголовки колонок */
+    .footer-heading {
+        color: #adb5bd;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
     }
-    
+
+    /* Ссылки */
     .footer-link {
         transition: color 0.2s ease, transform 0.2s ease;
         display: inline-block;
     }
-    
     .footer-link:hover {
         color: #ffffff !important;
         transform: translateX(3px);
     }
-    
+
+    /* Соцсети — крупнее для тапа на телефоне */
     .social-icon {
         transition: transform 0.3s ease, color 0.3s ease;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         color: #adb5bd !important;
+        font-size: 1.5rem;
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 50%;
     }
-    
-    .social-icon:hover {
+    .social-icon:hover,
+    .social-icon:focus {
         transform: translateY(-3px);
         color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.06);
     }
-    
+
+    /* Адрес и почта — чтобы длинные строки переносились аккуратно */
+    .footer-contacts p {
+        word-break: break-word;
+    }
+
     .footer hr {
         border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* На телефоне делаем текст компактнее и всё по центру */
+    @media (max-width: 767.98px) {
+        .footer {
+            padding-top: 1.5rem !important;
+            padding-bottom: 1.5rem !important;
+        }
+        .footer-brand {
+            font-size: 1rem;
+        }
+        .footer-heading {
+            margin-top: 0.5rem;
+        }
+        .footer hr {
+            margin-top: 1rem !important;
+            margin-bottom: 1rem !important;
+        }
     }
 </style>

@@ -40,14 +40,8 @@
                                 <a href="{% url 'meet:meet_detail' mt.id %}" class="btn btn-outline-primary btn-sm">
                                     Подробнее
                                 </a>
-                                {% if mt.format_type.format_name == 'Контест'%}
-                                <a href="{% url 'meet:submitresult' mt.pk %}" class='btn btn-outline-secondary btn-sm'>Сдать результат</a>
-                                {% endif %}
                                 {% if user.is_authenticated %}
                                 {% if mt.format_type.format_name != 'Контест'%}
-                                <a href="{% url 'meet:edit_results' mt.id %}" class="btn btn-outline-success btn-sm">
-                                    Ввод результатов
-                                </a>
                                 {% endif %}
                                 
                                 <a href="{% url 'meet:edit_meet' mt.id %}" class="btn btn-outline-warning btn-sm">

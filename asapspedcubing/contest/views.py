@@ -68,6 +68,7 @@ class ResultContestUpdateView(UpdateView):
         result = self.object
         return reverse_lazy('meet:meet_detail', kwargs={'pk': result.meet.pk})
 
+
 class ResultContestDeleteView(DeleteView):
     permisson_classes = [IsAuthenticated]
     model = ResultsContest

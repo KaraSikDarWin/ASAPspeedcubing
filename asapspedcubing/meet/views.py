@@ -161,10 +161,18 @@ def meet_detail(request, pk):
     for i in disciplines_with_rounds:
         rounds = []
         for j in range(i.rounds):
-            res = sorted(
-                results.filter(discipline=i.discipline, round_number=j+1),
-                key=lambda r: parse_avg(r.average),
-            )
+            if (i.discipline.result_format.name in ['Bo3', 'Bo5']):
+                res = sorted(
+                    results.filter(discipline=i.discipline, round_number=j+1),
+                    key=lambda r: parse_avg(r.best),
+                )
+                print(res)
+            else:
+                res = sorted(
+                    results.filter(discipline=i.discipline, round_number=j+1),
+                    key=lambda r: parse_avg(r.average),
+                )
+            
             if i.discipline.result_format.name != "FMC":
                 for p in res:
                     p.attempt_1 = format_time(p.attempt_1)

@@ -3,7 +3,7 @@ from .models import Meet, Discipline, Competitors, RoundsOfDiscipline, Results, 
 from django.forms import inlineformset_factory
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django_select2.forms import Select2Widget, Select2MultipleWidget
-
+from django.forms import inlineformset_factory
 
 class MeetForm(forms.ModelForm):
     competitors = forms.ModelMultipleChoiceField(
@@ -40,7 +40,7 @@ RoundsOfDisciplineFormSet = inlineformset_factory(
     RoundsOfDiscipline,
     form=RoundsOfDisciplineForm,
     extra=1,          # одна пустая форма для добавления
-    can_delete=True,  # добавляет чекбокс удаления
+    can_delete=False,  # добавляет чекбокс удаления
     min_num=0,
     validate_min=False,
 )
@@ -102,6 +102,7 @@ class ResultsСontestForm(forms.Form):
             self.fields['discipline'].queryset = Discipline.objects.filter(
                     roundsofdiscipline__meet__pk=meet_pk
             ).distinct()
+
     
     def clean(self):
 
@@ -232,7 +233,6 @@ class MeetFileForm(forms.ModelForm):
         return file
 
 # Formset для управления несколькими файлами
-from django.forms import inlineformset_factory
 
 MeetFileFormSet = inlineformset_factory(
     Meet,

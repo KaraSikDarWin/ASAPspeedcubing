@@ -274,11 +274,10 @@ class Results(models.Model):
     average = models.CharField(max_length=7, verbose_name="Среднее")
     best = models.CharField(max_length=7, verbose_name="Лучшее")
 
-
     def save(self, *args, **kwargs):
         # Парсим попытки, но не изменяем сами поля (храним ввод пользователя)
         print(self.discipline.result_format.name)
-        if self.discipline.result_format.name == 'Ao5':
+        if self.discipline.result_format.name in ['Ao5', 'Bo5']:
             parsed = [
                 parse_time_string_to_seconds(self.attempt_1),
                 parse_time_string_to_seconds(self.attempt_2),
@@ -310,7 +309,7 @@ class Results(models.Model):
                     self.average = seconds_to_time_format_floor(avg)
 
 
-        elif self.discipline.result_format.name == 'Mo3':
+        elif self.discipline.result_format.name in ['Mo3', 'Bo3']:
             parsed = [
                         parse_time_string_to_seconds(self.attempt_1),
                         parse_time_string_to_seconds(self.attempt_2),
@@ -329,6 +328,8 @@ class Results(models.Model):
             else:
                 avg = round((sum(valid) / 3), 2)
                 self.average = seconds_to_time_format_floor(avg)
+            self.attempt_4 = 0
+            self.attempt_5 = 0
 
         elif self.discipline.result_format.name == 'FMC':
             parsed = [
@@ -354,7 +355,12 @@ class Results(models.Model):
 
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f'{self.competitor} - {self.meet}: {self.discipline} - {self.round_number} ' 
+
     class Meta:
         verbose_name = "Результат"
         verbose_name_plural = "Результаты"
         unique_together = ('competitor', 'meet', 'discipline', 'round_number')
+
+    

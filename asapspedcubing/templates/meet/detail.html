@@ -17,7 +17,7 @@
                                                 {% elif meet.format_type.format_name == "Контест" %} 
                                                 text-info {% else %} 
                                                 {% endif %}'></strong>{{meet.format_type.format_name}}</span>
-                {% if meet.locations %}
+            {% if meet.locations %}
                     <br><strong>Место:</strong> {{ meet.locations }}
                 {% endif %}
             </p>
@@ -60,7 +60,7 @@
                                             <th>Попытка 1</th>
                                             <th>Попытка 2</th>
                                             <th>Попытка 3</th>
-                                            {% if result_format == 'Ao5' %}
+                                            {% if result_format == 'Ao5' or result_format == 'Bo5'%}
                                             <th>Попытка 4</th>
                                             <th>Попытка 5</th>
                                             {% endif %}
@@ -88,7 +88,7 @@
                                                 <td>{{ attempt.attempt_1|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_2|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_3|default:"—" }}</td>
-                                                {% if result_format == 'Ao5' %}
+                                                {% if result_format == 'Ao5' or result_format == 'Bo5' %}
                                                 <td>{{ attempt.attempt_4|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_5|default:"—" }}</td>
                                                 {% endif %}
@@ -110,7 +110,7 @@
                                                 <td>{{ attempt.attempt_1|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_2|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_3|default:"—" }}</td>
-                                                {% if result_format == 'Ao5' %}
+                                                {% if result_format == 'Ao5' or result_format == 'Bo5' %}
                                                 <td>{{ attempt.attempt_4|default:"—" }}</td>
                                                 <td>{{ attempt.attempt_5|default:"—" }}</td>
                                                 {% endif %}
@@ -240,11 +240,11 @@
         </div>
     </div>
 
-</div> <!-- закрываем col-9 -->
+</div>
 
 <!-- Боковая панель (сайтбар) -->
   {% if meet.format_type.format_name == 'Сходка' and user.is_authenticated %}
-  <div id="sidebar-block" class="card col-12 col-md-6 col-lg-2 m-2 m-lg-5 p-2" style="display:block">
+  <div id="sidebar-block" class="card col-12 col-md-6 col-lg-2 m-0 m-lg-5 p-2 m-sm-0" style="display:block">
     <div class='container mb-2'>
         <button type='button' id='edit-span' class='btn' style='background: #0d6efd; color: white' onclick="switchToggle()">Добавить</button>
         <button type='button' id='remove-span' class='btn' onclick="switchToggle()">Удалить</button>
@@ -277,18 +277,44 @@
     </div>
   </div>
   {% endif %}
-  {% if meet.format_type.format_name == 'Контест' %}
-  <div id="sidebar-block" class="card col-12 col-md-6 col-lg-2 m-2 m-lg-5 p-2" style="display:block">
-    <div class="container">
-      <h5>Ввод результатов</h5>
-      <form method="post" name="add_result_contest">
-            {% csrf_token %}
-            {% bootstrap_form add_result_contest %}
-            <button type="submit" name="add_result_contest" class="btn btn-primary">Отправить</button>
-        </form>
+{% if meet.format_type.format_name == 'Контест' %}
+<div class="col-12 col-md-6 col-lg-2 m-0 m-lg-5 p-2">
+    <!-- Правила -->
+    <div class="card mb-3">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0 fs-6">Правила ввода результатов</h3>
+        </div>
+        <div class="card-body">
+            <p class="medium mb-0">
+                &nbsp Чтобы отправить результат необходимо:<br>
+                &nbsp 1. Написать Имя и Фамилию (Именно в таком порядке);<br>
+                &nbsp 2. Выбрать дисциплину из списка и номер раунда (количество раундов можно посмотреть слева);<br>
+                &nbsp 3. Вписать результаты попыток;<br>
+                <span class='text-danger'>ВАЖНО!</span> Результаты нужно вводить без разделительных знаков! Пример: 1234 -> 12.34 или 12345 -> 1:23.45 <br>
+                &nbsp 4. Нажать на кнопку отправить.<br>
+                &nbspПосле отправки результата, он отправляется на модерацию к администратору. После проверки результат появится в общей таблице результатов. <br>
+                <span class='text-warning'>Если результат попытки будет записан неверно, то он автоматически станет DNF. Будьте внимательны!</span><br>
+                <span>Если вы допустили ошибку, то обратитесь к администротору</span></br>
+                Удачи!!!
+            </p>
+        </div>
     </div>
-  </div>
-  {% endif %}
+
+    <!-- Форма -->
+    <div id="sidebar-block" class="card" style="display:block">
+        <div class="card-body">
+            <h5>Ввод результатов</h5>
+            <form method="post" name="add_result_contest">
+                {% csrf_token %}
+                {% bootstrap_form add_result_contest %}
+                <button type="submit" name="add_result_contest" class="btn btn-primary">
+                    Отправить
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
   
 
 
@@ -397,7 +423,7 @@
         {% endfor %}
     };
 
-    const ATTEMPTS_BY_FORMAT = { Ao5: 5, Mo3: 3, FMC:3 };
+    const ATTEMPTS_BY_FORMAT = { Ao5: 5, Mo3: 3, FMC:3, Bo3:3, Bo5:5 };
     const DEFAULT_ATTEMPTS = 5;
 
     function updateAttempts() {
