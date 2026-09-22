@@ -21,7 +21,7 @@ class ResultsContest(models.Model):
 
 
     def save(self, *args, **kwargs):
-        if self.discipline.result_format.name == 'Ao5':
+        if self.discipline.result_format.name in ['Ao5', 'Bo5']:
             parsed = [
                 parse_time_string_to_seconds(self.attempt_1),
                 parse_time_string_to_seconds(self.attempt_2),
@@ -52,7 +52,7 @@ class ResultsContest(models.Model):
                     self.average = seconds_to_time_format_floor(avg)
 
 
-        elif self.discipline.result_format.name == 'Mo3':
+        elif self.discipline.result_format.name in ['Mo3', 'Bo3']:
             parsed = [
                         parse_time_string_to_seconds(self.attempt_1),
                         parse_time_string_to_seconds(self.attempt_2),
@@ -78,10 +78,8 @@ class ResultsContest(models.Model):
                 int(self.attempt_2),
                 int(self.attempt_3)
             ]
-            print(parsed)
             valid = [x for x in parsed if x is not None]
             numeric = [x for x in valid if x != float('inf')]
-            print(numeric)
             if numeric:
                 best_sec = min(numeric)
                 self.best = best_sec
